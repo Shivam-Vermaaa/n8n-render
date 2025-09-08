@@ -1,0 +1,18 @@
+# Use the same base image you already referenced on Render
+FROM docker.n8n.io/n8nio/n8n:latest
+
+# Switch to root so we can install packages
+USER root
+
+# Install LangChain nodes (and any other additional node packages)
+# --legacy-peer-deps helps avoid peer-dependency failures in container builds
+RUN npm install --omit=dev --no-package-lock --legacy-peer-deps @n8n/n8n-nodes-langchain@latest \
+    && npm cache clean --force
+
+# Fix permissions so the n8n node user can use installed packages and /data
+RUN chown -R node:node /usr/local/lib/node_modules /home/node/.npm /home/node/.config /data
+
+# Switch back to the node user the image expects
+USER node
+
+# (The base image already sets the correct CMD/entrypoint)
